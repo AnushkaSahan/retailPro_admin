@@ -22,11 +22,12 @@ const Navbar = () => {
         <div className="flex items-center justify-between">
           {/* Search Bar */}
           <div className="flex-1 max-w-xl">
-            <input
+            {/* <input
               type="text"
-              placeholder="Search products, customers..."
+              placeholder="Search your products, customers or anything"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
+            /> */}
+            <h1 className="text-xl font-bold">Point of Sale System</h1>
           </div>
 
           {/* Right Section */}
