@@ -1,11 +1,14 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { FiBell, FiUser, FiLogOut, FiSettings } from "react-icons/fi";
 import { toast } from "react-toastify";
 
 const Navbar = () => {
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [unreadNotifications] = useState(3);
 
   const handleLogout = async () => {
     try {
@@ -24,7 +27,7 @@ const Navbar = () => {
           <div className="flex-1 max-w-xl">
             {/* <input
               type="text"
-              placeholder="Search your products, customers or anything"
+              placeholder="Search products, customers..."
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             /> */}
             <h1 className="text-xl font-bold">Point of Sale System</h1>
@@ -33,9 +36,16 @@ const Navbar = () => {
           {/* Right Section */}
           <div className="flex items-center space-x-4">
             {/* Notifications */}
-            <button className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+            <button
+              onClick={() => navigate("/notifications")}
+              className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
               <FiBell className="w-6 h-6" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              {unreadNotifications > 0 && (
+                <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">
+                  {unreadNotifications}
+                </span>
+              )}
             </button>
 
             {/* User Menu */}
@@ -51,18 +61,30 @@ const Navbar = () => {
                   <p className="text-sm font-medium text-gray-900">
                     {user?.username}
                   </p>
-                  <p className="text-xs text-gray-500">Cashier</p>
+                  <p className="text-xs text-gray-500">Administrator</p>
                 </div>
               </button>
 
               {/* Dropdown Menu */}
               {showUserMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                  <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
+                  <button
+                    onClick={() => {
+                      navigate("/profile");
+                      setShowUserMenu(false);
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                  >
                     <FiUser className="w-4 h-4" />
                     <span>Profile</span>
                   </button>
-                  <button className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2">
+                  <button
+                    onClick={() => {
+                      navigate("/settings");
+                      setShowUserMenu(false);
+                    }}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                  >
                     <FiSettings className="w-4 h-4" />
                     <span>Settings</span>
                   </button>
