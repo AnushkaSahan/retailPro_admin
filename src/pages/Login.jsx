@@ -2,17 +2,20 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
-import { FiShoppingBag, FiLock, FiUser } from "react-icons/fi";
+import { FiShoppingBag, FiLock, FiUser, FiEye, FiEyeOff } from "react-icons/fi";
 
 const Login = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
+
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     password: "",
   });
 
+  // Handle input change
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -20,6 +23,7 @@ const Login = () => {
     });
   };
 
+  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -75,7 +79,7 @@ const Login = () => {
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
-                  className="input-field pl-10"
+                  className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                   placeholder="Enter your username"
                   disabled={loading}
                 />
@@ -88,18 +92,34 @@ const Login = () => {
                 Password
               </label>
               <div className="relative">
+                {/* Lock Icon */}
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <FiLock className="h-5 w-5 text-gray-400" />
                 </div>
+
+                {/* Password Input */}
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="input-field pl-10"
+                  className="w-full px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                   placeholder="Enter your password"
                   disabled={loading}
                 />
+
+                {/* Eye Icon Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  {showPassword ? (
+                    <FiEyeOff className="h-5 w-5" />
+                  ) : (
+                    <FiEye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
             </div>
 
@@ -107,26 +127,11 @@ const Login = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full btn-primary py-3 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 text-lg font-semibold rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? "Signing In..." : "Sign In"}
             </button>
           </form>
-
-          {/* Demo Credentials */}
-          {/* <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-600 text-center font-medium mb-2">
-              Demo Credentials:
-            </p>
-            <div className="text-xs text-gray-500 space-y-1">
-              <p>
-                <strong>Admin:</strong> admin / admin123
-              </p>
-              <p>
-                <strong>Cashier:</strong> cashier / cashier123
-              </p>
-            </div>
-          </div> */}
         </div>
 
         {/* Footer */}
