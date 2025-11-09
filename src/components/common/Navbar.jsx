@@ -72,7 +72,9 @@ const Navbar = () => {
               placeholder="Search products, customers..."
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
             /> */
-              <h2 className="text-lg font-semibold">RetailPro POS System</h2>
+              <h2 className="text-lg font-semibold text-secondary-600">
+                RetailPro POS System
+              </h2>
             }
           </div>
 
