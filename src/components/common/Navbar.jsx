@@ -66,11 +66,14 @@ const Navbar = () => {
       <div className="px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex-1 max-w-xl">
-            <input
+            {
+              /* <input
               type="text"
               placeholder="Search products, customers..."
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            />
+            /> */
+              <h2 className="text-lg font-semibold">RetailPro POS System</h2>
+            }
           </div>
 
           <div className="flex items-center space-x-4">
