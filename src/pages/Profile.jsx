@@ -1,256 +1,198 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { FiUser, FiMail, FiPhone, FiMapPin, FiCamera } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
-import {
-  FiUser,
-  FiMail,
-  FiPhone,
-  FiMapPin,
-  FiEdit2,
-  FiSave,
-  FiX,
-} from "react-icons/fi";
+import profileService from "../services/profileService";
+import LoadingSpinner from "../components/common/LoadingSpinner";
 import { toast } from "react-toastify";
 
 const Profile = () => {
   const { user } = useAuth();
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    fullName: user?.username || "",
-    email: "user@retailpro.com",
-    phone: "+1 234 567 8900",
-    address: "123 Main Street, City, State 12345",
-    role: "Administrator",
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [profile, setProfile] = useState({
+    phone: "",
+    email: "",
+    address: "",
+    avatar: "",
   });
 
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const data = await profileService.getProfile();
+      setProfile(data);
+    } catch (error) {
+      console.error("Failed to load profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
+    setProfile({
+      ...profile,
       [e.target.name]: e.target.value,
     });
   };
 
-  const handleSave = () => {
-    toast.success("Profile updated successfully");
-    setIsEditing(false);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await profileService.updateProfile(profile);
+      toast.success("Profile updated successfully");
+    } catch (error) {
+      toast.error("Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleCancel = () => {
-    setIsEditing(false);
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
-        <p className="text-gray-600 mt-1">Manage your account information</p>
+        <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
+        <p className="text-gray-600 mt-1">Manage your personal information</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Profile Card */}
-        <div className="lg:col-span-1">
-          <div className="card">
-            <div className="text-center">
-              <div className="w-32 h-32 bg-primary-600 text-white rounded-full flex items-center justify-center text-5xl font-bold mx-auto mb-4">
-                {user?.username?.charAt(0).toUpperCase()}
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-1">
-                {formData.fullName}
-              </h2>
-              <p className="text-gray-600 mb-4">{formData.role}</p>
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                Active
-              </span>
+        <div className="card text-center">
+          <div className="relative inline-block mb-4">
+            <div className="w-32 h-32 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold text-4xl mx-auto">
+              {user?.username?.charAt(0).toUpperCase()}
             </div>
-
-            <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
-              <div className="flex items-center text-sm text-gray-600">
-                <FiMail className="w-5 h-5 mr-3" />
-                <span>{formData.email}</span>
-              </div>
-              <div className="flex items-center text-sm text-gray-600">
-                <FiPhone className="w-5 h-5 mr-3" />
-                <span>{formData.phone}</span>
-              </div>
-              <div className="flex items-start text-sm text-gray-600">
-                <FiMapPin className="w-5 h-5 mr-3 mt-0.5" />
-                <span>{formData.address}</span>
-              </div>
-            </div>
+            <button className="absolute bottom-0 right-0 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100">
+              <FiCamera className="w-5 h-5 text-gray-600" />
+            </button>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900">{user?.username}</h2>
+          <p className="text-gray-600 mt-1">Cashier</p>
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <p className="text-sm text-gray-500">Member since</p>
+            <p className="font-medium text-gray-900">January 2025</p>
           </div>
         </div>
 
-        {/* Profile Information */}
-        <div className="lg:col-span-2">
-          <div className="card">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-900">
-                Personal Information
-              </h3>
-              {!isEditing ? (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="btn-primary flex items-center space-x-2"
-                >
-                  <FiEdit2 className="w-4 h-4" />
-                  <span>Edit Profile</span>
-                </button>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={handleCancel}
-                    className="btn-secondary flex items-center space-x-2"
-                  >
-                    <FiX className="w-4 h-4" />
-                    <span>Cancel</span>
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    className="btn-primary flex items-center space-x-2"
-                  >
-                    <FiSave className="w-4 h-4" />
-                    <span>Save Changes</span>
-                  </button>
-                </div>
-              )}
-            </div>
+        {/* Profile Form */}
+        <div className="lg:col-span-2 card">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">
+            Personal Information
+          </h3>
 
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name
-                  </label>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Username
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiUser className="h-5 w-5 text-gray-400" />
+                  </div>
                   <input
                     type="text"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleChange}
-                    disabled={!isEditing}
-                    className="input-field disabled:bg-gray-50 disabled:text-gray-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Username
-                  </label>
-                  <input
-                    type="text"
-                    value={user?.username}
+                    value={user?.username || ""}
                     disabled
-                    className="input-field bg-gray-50 text-gray-500"
+                    className="input-field pl-10 bg-gray-50"
                   />
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address
-                  </label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiMail className="h-5 w-5 text-gray-400" />
+                  </div>
                   <input
                     type="email"
                     name="email"
-                    value={formData.email}
+                    value={profile.email}
                     onChange={handleChange}
-                    disabled={!isEditing}
-                    className="input-field disabled:bg-gray-50 disabled:text-gray-500"
+                    className="input-field pl-10"
+                    placeholder="your.email@example.com"
                   />
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Phone Number
-                  </label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Phone
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FiPhone className="h-5 w-5 text-gray-400" />
+                  </div>
                   <input
                     type="tel"
                     name="phone"
-                    value={formData.phone}
+                    value={profile.phone}
                     onChange={handleChange}
-                    disabled={!isEditing}
-                    className="input-field disabled:bg-gray-50 disabled:text-gray-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Role
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.role}
-                    disabled
-                    className="input-field bg-gray-50 text-gray-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Status
-                  </label>
-                  <input
-                    type="text"
-                    value="Active"
-                    disabled
-                    className="input-field bg-gray-50 text-gray-500"
+                    className="input-field pl-10"
+                    placeholder="+1234567890"
                   />
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Address
+                  Role
                 </label>
+                <input
+                  type="text"
+                  value="Cashier"
+                  disabled
+                  className="input-field bg-gray-50"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Address
+              </label>
+              <div className="relative">
+                <div className="absolute top-3 left-3 pointer-events-none">
+                  <FiMapPin className="h-5 w-5 text-gray-400" />
+                </div>
                 <textarea
                   name="address"
-                  value={formData.address}
+                  value={profile.address}
                   onChange={handleChange}
-                  disabled={!isEditing}
                   rows="3"
-                  className="input-field disabled:bg-gray-50 disabled:text-gray-500"
+                  className="input-field pl-10"
+                  placeholder="Enter your address"
                 />
               </div>
             </div>
-          </div>
 
-          {/* Change Password */}
-          <div className="card mt-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-6">
-              Change Password
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Current Password
-                </label>
-                <input
-                  type="password"
-                  className="input-field"
-                  placeholder="Enter current password"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  className="input-field"
-                  placeholder="Enter new password"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Confirm New Password
-                </label>
-                <input
-                  type="password"
-                  className="input-field"
-                  placeholder="Confirm new password"
-                />
-              </div>
-              <button className="btn-primary">Update Password</button>
+            <div className="flex justify-end space-x-3">
+              <button type="button" className="btn-secondary">
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="btn-primary disabled:opacity-50"
+              >
+                {saving ? "Saving..." : "Save Changes"}
+              </button>
             </div>
-          </div>
+          </form>
         </div>
       </div>
     </div>

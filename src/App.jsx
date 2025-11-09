@@ -9,7 +9,6 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
-// Pages
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
@@ -22,12 +21,10 @@ import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
-// Components
 import Sidebar from "./components/common/Sidebar";
 import Navbar from "./components/common/Navbar";
 import LoadingSpinner from "./components/common/LoadingSpinner";
 
-// Protected Route Component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
@@ -38,7 +35,6 @@ const ProtectedRoute = ({ children }) => {
   return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
-// Layout Component
 const Layout = ({ children }) => {
   return (
     <div className="flex h-screen bg-gray-50">

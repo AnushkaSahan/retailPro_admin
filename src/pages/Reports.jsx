@@ -42,6 +42,36 @@ const Reports = () => {
     }
   };
 
+  const exportReport = () => {
+    const reportData = {
+      date: new Date().toISOString(),
+      dailySales: {
+        totalSales: dailySales?.totalSales || 0,
+        totalRevenue: dailySales?.totalRevenue || 0,
+        avgSaleValue: dailySales?.avgSaleValue || 0,
+      },
+      inventory: {
+        totalProducts: inventory?.totalProducts || 0,
+        totalStock: inventory?.totalStock || 0,
+        totalValue: inventory?.totalValue || 0,
+      },
+      topSellingProducts: topSelling,
+    };
+
+    const dataStr = JSON.stringify(reportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `pos-report-${new Date().toISOString().split("T")[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast.success("Report exported successfully");
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -52,7 +82,6 @@ const Reports = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">
@@ -62,7 +91,10 @@ const Reports = () => {
             View business insights and performance metrics
           </p>
         </div>
-        <button className="btn-primary flex items-center space-x-2">
+        <button
+          onClick={exportReport}
+          className="btn-primary flex items-center space-x-2"
+        >
           <FiDownload className="w-5 h-5" />
           <span>Export Report</span>
         </button>
@@ -76,7 +108,7 @@ const Reports = () => {
             <span>Daily Sales Report</span>
           </h2>
           <span className="text-sm text-gray-600">
-            {formatDateOnly(dailySales?.date)}
+            {formatDateOnly(dailySales?.date || new Date())}
           </span>
         </div>
 
@@ -110,11 +142,7 @@ const Reports = () => {
               <div>
                 <p className="text-sm text-purple-700 mb-1">Avg. Sale Value</p>
                 <p className="text-3xl font-bold text-purple-900">
-                  {formatCurrency(
-                    dailySales?.totalSales > 0
-                      ? dailySales.totalRevenue / dailySales.totalSales
-                      : 0
-                  )}
+                  {formatCurrency(dailySales?.avgSaleValue || 0)}
                 </p>
               </div>
               <FiDollarSign className="w-12 h-12 text-purple-600" />
@@ -122,7 +150,6 @@ const Reports = () => {
           </div>
         </div>
 
-        {/* Recent Sales */}
         {dailySales?.sales && dailySales.sales.length > 0 && (
           <div className="mt-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -168,7 +195,7 @@ const Reports = () => {
         )}
       </div>
 
-      {/* Inventory Summary */}
+      {/* Inventory & Top Selling - Same as before */}
       <div className="card">
         <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
           <FiPackage className="w-6 h-6 text-primary-600" />
@@ -196,7 +223,6 @@ const Reports = () => {
           </div>
         </div>
 
-        {/* Low Stock Products */}
         {inventory?.lowStockProducts &&
           inventory.lowStockProducts.length > 0 && (
             <div>
@@ -231,49 +257,6 @@ const Reports = () => {
               </div>
             </div>
           )}
-      </div>
-
-      {/* Top Selling Products */}
-      <div className="card">
-        <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
-          <FiTrendingUp className="w-6 h-6 text-primary-600" />
-          <span>Top Selling Products</span>
-        </h2>
-
-        {topSelling && topSelling.length > 0 ? (
-          <div className="space-y-4">
-            {topSelling.slice(0, 10).map((item, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-bold">
-                    #{index + 1}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">{item[0]}</p>
-                    <p className="text-sm text-gray-600">
-                      Total sold: {item[1]} units
-                    </p>
-                  </div>
-                </div>
-                <div className="w-32 bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-primary-600 h-2 rounded-full"
-                    style={{
-                      width: `${(item[1] / topSelling[0][1]) * 100}%`,
-                    }}
-                  ></div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12 text-gray-500">
-            <p>No sales data available yet</p>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -1,113 +1,147 @@
-import React, { useState } from "react";
-import {
-  FiSettings,
-  FiBell,
-  FiLock,
-  FiGlobe,
-  FiDatabase,
-  FiDollarSign,
-} from "react-icons/fi";
+import React, { useState, useEffect } from "react";
+import { FiSave, FiRefreshCw } from "react-icons/fi";
+import settingsService from "../services/settingsService";
+import LoadingSpinner from "../components/common/LoadingSpinner";
 import { toast } from "react-toastify";
 
 const Settings = () => {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
-    // General
-    storeName: "RetailPro Store",
-    storeEmail: "store@retailpro.com",
-    storePhone: "+1 234 567 8900",
+    storeName: "",
+    storeAddress: "",
+    storePhone: "",
+    storeEmail: "",
     currency: "USD",
-    timezone: "America/New_York",
-
-    // Notifications
-    emailNotifications: true,
-    salesAlerts: true,
-    lowStockAlerts: true,
-
-    // Security
-    sessionTimeout: "30",
-    twoFactorAuth: false,
-
-    // Database
-    autoBackup: true,
-    backupFrequency: "daily",
+    taxRate: "0",
+    lowStockThreshold: "10",
+    receiptFooter: "",
   });
 
-  const handleChange = (field, value) => {
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const data = await settingsService.getAllSettings();
+      const settingsObj = {};
+      data.forEach((setting) => {
+        settingsObj[setting.settingKey] = setting.settingValue;
+      });
+      setSettings({ ...settings, ...settingsObj });
+    } catch (error) {
+      console.error("Failed to load settings:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleChange = (e) => {
     setSettings({
       ...settings,
-      [field]: value,
+      [e.target.name]: e.target.value,
     });
   };
 
-  const handleSave = () => {
-    toast.success("Settings saved successfully");
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      await Promise.all(
+        Object.entries(settings).map(([key, value]) =>
+          settingsService.updateSetting(key, value)
+        )
+      );
+      toast.success("Settings saved successfully");
+    } catch (error) {
+      toast.error("Failed to save settings");
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-600 mt-1">
-          Manage your application preferences
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+          <p className="text-gray-600 mt-1">Configure your POS system</p>
+        </div>
+        <button
+          onClick={fetchSettings}
+          className="btn-secondary flex items-center space-x-2"
+        >
+          <FiRefreshCw className="w-5 h-5" />
+          <span>Refresh</span>
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* General Settings */}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Store Information */}
         <div className="card">
-          <div className="flex items-center space-x-3 mb-6">
-            <FiSettings className="w-6 h-6 text-primary-600" />
-            <h2 className="text-xl font-bold text-gray-900">
-              General Settings
-            </h2>
-          </div>
-
-          <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">
+            Store Information
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Store Name
               </label>
               <input
                 type="text"
+                name="storeName"
                 value={settings.storeName}
-                onChange={(e) => handleChange("storeName", e.target.value)}
+                onChange={handleChange}
                 className="input-field"
+                placeholder="RetailPro Store"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Store Email
-              </label>
-              <input
-                type="email"
-                value={settings.storeEmail}
-                onChange={(e) => handleChange("storeEmail", e.target.value)}
-                className="input-field"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Store Phone
+                Phone
               </label>
               <input
                 type="tel"
+                name="storePhone"
                 value={settings.storePhone}
-                onChange={(e) => handleChange("storePhone", e.target.value)}
+                onChange={handleChange}
                 className="input-field"
+                placeholder="+1234567890"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                <FiDollarSign className="inline w-4 h-4 mr-1" />
+                Email
+              </label>
+              <input
+                type="email"
+                name="storeEmail"
+                value={settings.storeEmail}
+                onChange={handleChange}
+                className="input-field"
+                placeholder="store@example.com"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Currency
               </label>
               <select
+                name="currency"
                 value={settings.currency}
-                onChange={(e) => handleChange("currency", e.target.value)}
+                onChange={handleChange}
                 className="input-field"
               >
                 <option value="USD">USD - US Dollar</option>
@@ -117,194 +151,85 @@ const Settings = () => {
               </select>
             </div>
 
-            <div>
+            <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                <FiGlobe className="inline w-4 h-4 mr-1" />
-                Timezone
+                Address
               </label>
-              <select
-                value={settings.timezone}
-                onChange={(e) => handleChange("timezone", e.target.value)}
+              <textarea
+                name="storeAddress"
+                value={settings.storeAddress}
+                onChange={handleChange}
+                rows="2"
                 className="input-field"
-              >
-                <option value="America/New_York">Eastern Time (US)</option>
-                <option value="America/Chicago">Central Time (US)</option>
-                <option value="America/Los_Angeles">Pacific Time (US)</option>
-                <option value="Asia/Colombo">Sri Lanka Time</option>
-                <option value="Europe/London">London</option>
-              </select>
+                placeholder="Store address"
+              />
             </div>
           </div>
         </div>
 
-        {/* Notification Settings */}
+        {/* Business Settings */}
         <div className="card">
-          <div className="flex items-center space-x-3 mb-6">
-            <FiBell className="w-6 h-6 text-primary-600" />
-            <h2 className="text-xl font-bold text-gray-900">Notifications</h2>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Email Notifications</p>
-                <p className="text-sm text-gray-600">Receive email updates</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={settings.emailNotifications}
-                  onChange={(e) =>
-                    handleChange("emailNotifications", e.target.checked)
-                  }
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Sales Alerts</p>
-                <p className="text-sm text-gray-600">
-                  Get notified of new sales
-                </p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={settings.salesAlerts}
-                  onChange={(e) =>
-                    handleChange("salesAlerts", e.target.checked)
-                  }
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Low Stock Alerts</p>
-                <p className="text-sm text-gray-600">Alert when stock is low</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={settings.lowStockAlerts}
-                  onChange={(e) =>
-                    handleChange("lowStockAlerts", e.target.checked)
-                  }
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        {/* Security Settings */}
-        <div className="card">
-          <div className="flex items-center space-x-3 mb-6">
-            <FiLock className="w-6 h-6 text-primary-600" />
-            <h2 className="text-xl font-bold text-gray-900">Security</h2>
-          </div>
-
-          <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">
+            Business Settings
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Session Timeout (minutes)
+                Tax Rate (%)
               </label>
               <input
                 type="number"
-                value={settings.sessionTimeout}
-                onChange={(e) => handleChange("sessionTimeout", e.target.value)}
+                name="taxRate"
+                value={settings.taxRate}
+                onChange={handleChange}
+                step="0.01"
+                min="0"
+                max="100"
                 className="input-field"
-                min="5"
-                max="120"
               />
-            </div>
-
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">
-                  Two-Factor Authentication
-                </p>
-                <p className="text-sm text-gray-600">
-                  Add extra security layer
-                </p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={settings.twoFactorAuth}
-                  onChange={(e) =>
-                    handleChange("twoFactorAuth", e.target.checked)
-                  }
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        {/* Database Settings */}
-        <div className="card">
-          <div className="flex items-center space-x-3 mb-6">
-            <FiDatabase className="w-6 h-6 text-primary-600" />
-            <h2 className="text-xl font-bold text-gray-900">Database</h2>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-              <div>
-                <p className="font-medium text-gray-900">Automatic Backup</p>
-                <p className="text-sm text-gray-600">Enable auto backups</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={settings.autoBackup}
-                  onChange={(e) => handleChange("autoBackup", e.target.checked)}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-              </label>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Backup Frequency
+                Low Stock Threshold
               </label>
-              <select
-                value={settings.backupFrequency}
-                onChange={(e) =>
-                  handleChange("backupFrequency", e.target.value)
-                }
+              <input
+                type="number"
+                name="lowStockThreshold"
+                value={settings.lowStockThreshold}
+                onChange={handleChange}
+                min="0"
                 className="input-field"
-                disabled={!settings.autoBackup}
-              >
-                <option value="hourly">Every Hour</option>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-              </select>
+              />
             </div>
 
-            <button className="btn-secondary w-full">
-              <FiDatabase className="inline w-4 h-4 mr-2" />
-              Backup Now
-            </button>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Receipt Footer
+              </label>
+              <textarea
+                name="receiptFooter"
+                value={settings.receiptFooter}
+                onChange={handleChange}
+                rows="3"
+                className="input-field"
+                placeholder="Thank you for your business!"
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Save Button */}
-      <div className="flex justify-end">
-        <button onClick={handleSave} className="btn-primary px-8">
-          Save All Settings
-        </button>
-      </div>
+        <div className="flex justify-end">
+          <button
+            type="submit"
+            disabled={saving}
+            className="btn-primary flex items-center space-x-2 disabled:opacity-50"
+          >
+            <FiSave className="w-5 h-5" />
+            <span>{saving ? "Saving..." : "Save Settings"}</span>
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

@@ -10,8 +10,7 @@ import reportService from "../services/reportService";
 import { formatCurrency, formatNumber } from "../utils/formatters";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import { toast } from "react-toastify";
-import DashboardStats from "../components/dashboard/DashboardStats";
-import SalesChart from "../components/dashboard/SalesChart";
+import SalesPieChart from "../components/dashboard/SalesPieChart";
 
 const Dashboard = () => {
   const [stats, setStats] = useState(null);
@@ -26,7 +25,15 @@ const Dashboard = () => {
       const data = await reportService.getDashboardStats();
       setStats(data);
     } catch (error) {
+      console.error("Dashboard error:", error);
       toast.error("Failed to load dashboard data");
+      // Set default values to prevent crash
+      setStats({
+        todayRevenue: 0,
+        todaySales: 0,
+        totalProducts: 0,
+        lowStockProducts: 0,
+      });
     } finally {
       setLoading(false);
     }
@@ -73,7 +80,6 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-600 mt-1">
@@ -81,7 +87,6 @@ const Dashboard = () => {
         </p>
       </div>
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((stat, index) => {
           const Icon = stat.icon;
@@ -106,17 +111,14 @@ const Dashboard = () => {
         })}
       </div>
 
-      {/* Charts and Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Sales Chart */}
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Sales Overview
           </h3>
-          <SalesChart />
+          <SalesPieChart />
         </div>
 
-        {/* Quick Actions */}
         <div className="card">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Quick Actions
@@ -170,7 +172,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Low Stock Alert */}
       {stats?.lowStockProducts > 0 && (
         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
           <div className="flex items-center">
