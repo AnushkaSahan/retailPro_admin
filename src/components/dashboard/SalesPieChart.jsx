@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Pie } from "react-chartjs-2";
-import saleService from "../../services/saleService";
 
 // Register Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -21,28 +20,23 @@ const SalesPieChart = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchSalesData();
+    fetchMockSalesData();
   }, []);
 
-  const fetchSalesData = async () => {
+  // ✅ Mock sales data
+  const fetchMockSalesData = async () => {
     try {
-      const sales = await saleService.getTodaySales();
+      // Simulate API delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      if (!sales || sales.length === 0) {
-        setChartData({
-          labels: ["No Sales Today"],
-          datasets: [
-            {
-              data: [1],
-              backgroundColor: ["rgba(209, 213, 219, 0.5)"],
-              borderColor: ["rgb(209, 213, 219)"],
-              borderWidth: 2,
-            },
-          ],
-        });
-        setLoading(false);
-        return;
-      }
+      // 🧩 Mock data array (like backend response)
+      const sales = [
+        { id: 1, paymentType: "CASH", totalAmount: 1500 },
+        { id: 2, paymentType: "CARD", totalAmount: 2300 },
+        { id: 3, paymentType: "MOBILE_PAYMENT", totalAmount: 800 },
+        { id: 4, paymentType: "CREDIT", totalAmount: 1200 },
+        { id: 5, paymentType: "CASH", totalAmount: 700 },
+      ];
 
       // Group by payment type
       const paymentTypes = {};
@@ -87,18 +81,7 @@ const SalesPieChart = () => {
         ],
       });
     } catch (error) {
-      console.error("Failed to fetch sales data:", error);
-      setChartData({
-        labels: ["Error Loading Data"],
-        datasets: [
-          {
-            data: [1],
-            backgroundColor: ["rgba(239, 68, 68, 0.5)"],
-            borderColor: ["rgb(239, 68, 68)"],
-            borderWidth: 2,
-          },
-        ],
-      });
+      console.error("Failed to load mock data:", error);
     } finally {
       setLoading(false);
     }
@@ -112,10 +95,7 @@ const SalesPieChart = () => {
         position: "bottom",
         labels: {
           padding: 15,
-          font: {
-            size: 11,
-            family: "Inter, system-ui, sans-serif",
-          },
+          font: { size: 11, family: "Inter, system-ui, sans-serif" },
           usePointStyle: true,
           pointStyle: "circle",
         },
@@ -138,7 +118,7 @@ const SalesPieChart = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Loading chart...</div>
+        <div className="text-gray-500">Loading mock chart...</div>
       </div>
     );
   }
