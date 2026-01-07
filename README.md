@@ -10,7 +10,7 @@
 
 ## Overview
 
-RetailPro POS Frontend is a comprehensive web application designed for modern retail operations. Built with cutting-edge technologies, it provides an intuitive interface for cashiers and administrators to manage products, process sales, track inventory, and analyze business performance in real-time.
+RetailPro POS Frontend is a comprehensive web application designed for modern retail operations. Built with cutting-edge technologies, it provides an intuitive interface for cashiers and administrators to manage products, process sales, track inventory and analyze business performance in real-time.
 
 ### Key Highlights
 
