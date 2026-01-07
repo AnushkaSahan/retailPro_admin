@@ -15,7 +15,7 @@ const Navbar = () => {
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000); // Refresh every 30s
+    const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -62,131 +62,123 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-md border-b border-gray-200">
-      <div className="px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex-1 max-w-xl">
-            {
-              /* <input
-              type="text"
-              placeholder="Search products, customers..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-            /> */
-              <h2 className="text-lg font-semibold text-secondary-600">
-                RetailPro POS System
-              </h2>
-            }
+    <nav className="bg-white border-b border-gray-200 shadow-sm">
+      <div className="px-6 py-4 flex items-center justify-between">
+        {/* Title */}
+        <h2 className="text-lg font-semibold text-gray-800">
+          RetailPro POS System
+        </h2>
+
+        <div className="flex items-center space-x-4">
+          {/* Notifications */}
+          <div className="relative">
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="relative p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition"
+            >
+              <FiBell className="w-6 h-6" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
+
+            {showNotifications && (
+              <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-200 z-50">
+                <div className="p-4 border-b border-gray-200 flex justify-between">
+                  <h3 className="font-semibold text-gray-800">Notifications</h3>
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={markAllAsRead}
+                      className="text-xs text-primary-600 hover:underline"
+                    >
+                      Mark all read
+                    </button>
+                  )}
+                </div>
+
+                <div className="max-h-96 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="p-4 text-center text-gray-500">
+                      No new notifications
+                    </div>
+                  ) : (
+                    notifications.map((notif) => (
+                      <div
+                        key={notif.id}
+                        onClick={() => markAsRead(notif.id)}
+                        className="p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                      >
+                        <p className="text-sm font-medium text-gray-800">
+                          {notif.title}
+                        </p>
+                        <p className="text-xs text-gray-600 mt-1">
+                          {notif.message}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {new Date(notif.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center space-x-4">
-            {/* Notifications */}
-            <div className="relative">
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <FiBell className="w-6 h-6" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </span>
-                )}
-              </button>
+          {/* User Menu */}
+          <div className="relative">
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition"
+            >
+              <div className="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-semibold">
+                {user?.username?.charAt(0).toUpperCase()}
+              </div>
+              <div className="hidden md:block text-left">
+                <p className="text-sm font-medium text-gray-800">
+                  {user?.username}
+                </p>
+                <p className="text-xs text-gray-500">Cashier</p>
+              </div>
+            </button>
 
-              {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
-                  <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-900">
-                      Notifications
-                    </h3>
-                    {unreadCount > 0 && (
-                      <button
-                        onClick={markAllAsRead}
-                        className="text-xs text-primary-600 hover:text-primary-700"
-                      >
-                        Mark all read
-                      </button>
-                    )}
-                  </div>
-                  <div className="max-h-96 overflow-y-auto">
-                    {notifications.length === 0 ? (
-                      <div className="p-4 text-center text-gray-500">
-                        No new notifications
-                      </div>
-                    ) : (
-                      notifications.map((notif) => (
-                        <div
-                          key={notif.id}
-                          onClick={() => markAsRead(notif.id)}
-                          className="p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100"
-                        >
-                          <p className="font-medium text-sm text-gray-900">
-                            {notif.title}
-                          </p>
-                          <p className="text-xs text-gray-600 mt-1">
-                            {notif.message}
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {new Date(notif.createdAt).toLocaleString()}
-                          </p>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+            {showUserMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+                <button
+                  onClick={() => {
+                    navigate("/profile");
+                    setShowUserMenu(false);
+                  }}
+                  className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                >
+                  <FiUser />
+                  Profile
+                </button>
 
-            {/* User Menu */}
-            <div className="relative">
-              <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center space-x-3 p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <div className="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-semibold">
-                  {user?.username?.charAt(0).toUpperCase()}
-                </div>
-                <div className="text-left hidden md:block">
-                  <p className="text-sm font-medium text-gray-900">
-                    {user?.username}
-                  </p>
-                  <p className="text-xs text-gray-500">Cashier</p>
-                </div>
-              </button>
+                <button
+                  onClick={() => {
+                    navigate("/settings");
+                    setShowUserMenu(false);
+                  }}
+                  className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                >
+                  <FiSettings />
+                  Settings
+                </button>
 
-              {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                  <button
-                    onClick={() => {
-                      navigate("/profile");
-                      setShowUserMenu(false);
-                    }}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-                  >
-                    <FiUser className="w-4 h-4" />
-                    <span>Profile</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigate("/settings");
-                      setShowUserMenu(false);
-                    }}
-                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-                  >
-                    <FiSettings className="w-4 h-4" />
-                    <span>Settings</span>
-                  </button>
-                  <hr className="my-2" />
-                  <button
-                    onClick={handleLogout}
-                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
-                  >
-                    <FiLogOut className="w-4 h-4" />
-                    <span>Logout</span>
-                  </button>
-                </div>
-              )}
-            </div>
+                <hr className="my-2" />
+
+                <button
+                  onClick={handleLogout}
+                  className="w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                >
+                  <FiLogOut />
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
