@@ -14,6 +14,8 @@ import {
 } from "../utils/formatters";
 import LoadingSpinner from "../components/common/LoadingSpinner";
 import { toast } from "react-toastify";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const Reports = () => {
   const [dailySales, setDailySales] = useState(null);
@@ -50,39 +52,67 @@ const Reports = () => {
   };
 
   const exportReport = () => {
-    const reportData = {
-      generatedAt: new Date().toISOString(),
-      dailySales: {
-        date: dailySales?.date || new Date().toISOString().split("T")[0],
-        totalSales: dailySales?.totalSales || 0,
-        totalRevenue: dailySales?.totalRevenue || 0,
-        avgSaleValue: dailySales?.avgSaleValue || 0,
-        transactions: dailySales?.sales?.length || 0,
-      },
-      inventory: {
-        totalProducts: inventory?.totalProducts || 0,
-        totalStock: inventory?.totalStock || 0,
-        totalValue: inventory?.totalValue || 0,
-        lowStockCount: inventory?.lowStockProducts?.length || 0,
-      },
-      topSellingProducts: topSelling.map((item) => ({
-        productName: item[0],
-        quantitySold: item[1],
-      })),
-    };
+    try {
+      console.log("Starting PDF Generation...");
 
-    const dataStr = JSON.stringify(reportData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `pos-report-${new Date().toISOString().split("T")[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+      const doc = new jsPDF();
 
-    toast.success("Report exported successfully");
+      // 1. Header Section
+      doc.setFontSize(20);
+      doc.setTextColor(40);
+      doc.text("Business Performance Report", 14, 22);
+
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
+      doc.line(14, 35, 196, 35);
+
+      // 2. Inventory Summary Section (Starting from Y=45 now)
+      doc.setFontSize(14);
+      doc.setTextColor(0);
+      doc.text("Inventory Summary", 14, 45);
+
+      autoTable(doc, {
+        startY: 50,
+        head: [["Inventory Metric", "Current Status"]],
+        body: [
+          ["Total Products", inventory?.totalProducts?.toString() || "0"],
+          ["Total Stock Units", `${inventory?.totalStock || 0} Units`],
+          [
+            "Estimated Stock Value",
+            formatCurrency(Number(inventory?.totalValue || 0)),
+          ],
+        ],
+        theme: "striped",
+        headStyles: { fillColor: [16, 185, 129] },
+      });
+
+      // 3. Top Selling Products
+      if (topSelling && topSelling.length > 0) {
+        let nextY = doc.lastAutoTable.finalY + 15;
+        doc.text("Top Selling Products", 14, nextY);
+
+        const topSellingRows = topSelling.map((item, index) => [
+          `#${index + 1}`,
+          item[0] || "Unknown",
+          item[1]?.toString() || "0",
+        ]);
+
+        autoTable(doc, {
+          startY: nextY + 5,
+          head: [["Rank", "Product Name", "Quantity Sold"]],
+          body: topSellingRows,
+          headStyles: { fillColor: [245, 158, 11] },
+        });
+      }
+
+      // Save
+      doc.save(`POS_Report_${new Date().toISOString().split("T")[0]}.pdf`);
+      toast.success("PDF Report generated successfully");
+    } catch (error) {
+      console.error("PDF Export Error Detailed:", error);
+      toast.error("Failed to generate PDF: " + error.message);
+    }
   };
 
   if (loading) {
@@ -118,8 +148,6 @@ const Reports = () => {
           <span>Export Report</span>
         </button>
       </div>
-
-      {/* Daily Sales Report */}
 
       {/* Inventory Summary */}
       <div className="card">

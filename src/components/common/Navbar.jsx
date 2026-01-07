@@ -146,7 +146,7 @@ const Navbar = () => {
 
             {showUserMenu && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
-                <button
+                {/* <button
                   onClick={() => {
                     navigate("/profile");
                     setShowUserMenu(false);
@@ -155,9 +155,9 @@ const Navbar = () => {
                 >
                   <FiUser />
                   Profile
-                </button>
+                </button> */}
 
-                <button
+                {/* <button
                   onClick={() => {
                     navigate("/settings");
                     setShowUserMenu(false);
@@ -166,9 +166,9 @@ const Navbar = () => {
                 >
                   <FiSettings />
                   Settings
-                </button>
+                </button> */}
 
-                <hr className="my-2" />
+                {/* <hr className="my-2" /> */}
 
                 <button
                   onClick={handleLogout}
